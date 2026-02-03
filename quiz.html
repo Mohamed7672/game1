@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Monde</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        .quiz-container {
+            background: white;
+            width: 420px;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .question {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .answers button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            background: #11998e;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .answers button:hover {
+            background: #0e7c72;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .result {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .restart {
+            margin-top: 15px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>🌍 Quiz du Monde</h1>
+
+    <div class="info">
+        <span>⏱️ Temps : <span id="time">10</span>s</span>
+        <span>⭐ Score : <span id="score">0</span></span>
+    </div>
+
+    <div id="quiz">
+        <div class="question" id="question"></div>
+        <div class="answers" id="answers"></div>
+    </div>
+
+    <div id="end" class="hidden">
+        <p class="result" id="finalScore"></p>
+        <button class="restart" onclick="restart()">Rejouer 🔄</button>
+    </div>
+</div>
+
+<!-- Sons -->
+<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+<audio id="endSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
+
+<script>
+    const questions = [
+        {
+            question: "Quel est le plus grand continent du monde ?",
+            answers: ["Afrique", "Europe", "Asie", "Amérique"],
+            correct: 2
+        },
+        {
+            question: "Quel est le plus long fleuve du monde ?",
+            answers: ["Nil", "Amazon", "Mississippi", "Congo"],
+            correct: 0
+        },
+        {
+            question: "Quelle est la capitale du Japon ?",
+            answers: ["Séoul", "Pékin", "Tokyo", "Bangkok"],
+            correct: 2
+        },
+        {
+            question: "Combien y a-t-il de continents sur Terre ?",
+            answers: ["5", "6", "7", "8"],
+            correct: 2
+        },
+        {
+            question: "Quel pays est le plus peuplé du monde ?",
+            answers: ["États-Unis", "Inde", "Chine", "Russie"],
+            correct: 2
+        },
+        {
+            question: "Quel océan est le plus vaste ?",
+            answers: ["Atlantique", "Indien", "Arctique", "Pacifique"],
+            correct: 3
+        },
+        {
+            question: "Quelle est la plus haute montagne du monde ?",
+            answers: ["Kilimandjaro", "Mont Blanc", "Everest", "Alpes"],
+            correct: 2
+        },
+        {
+            question: "Quel pays est surnommé le pays du Soleil-Levant ?",
+            answers: ["Chine", "Japon", "Corée", "Thaïlande"],
+            correct: 1
+        }
+    ];
+
+    let index = 0;
+    let score = 0;
+    let time = 10;
+    let timer;
+
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const scoreEl = document.getElementById("score");
+    const timeEl = document.getElementById("time");
+    const quizEl = document.getElementById("quiz");
+    const endEl = document.getElementById("end");
+    const finalScoreEl = document.getElementById("finalScore");
+
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
+    const endSound = document.getElementById("endSound");
+
+    function startTimer() {
+        time = 10;
+        timeEl.textContent = time;
+
+        timer = setInterval(() => {
+            time--;
+            timeEl.textContent = time;
+
+            if (time === 0) {
+                clearInterval(timer);
+                wrongSound.play();
+                nextQuestion();
+            }
+        }, 1000);
+    }
+
+    function showQuestion() {
+        const q = questions[index];
+        questionEl.textContent = q.question;
+        answersEl.innerHTML = "";
+
+        q.answers.forEach((ans, i) => {
+            const btn = document.createElement("button");
+            btn.textContent = ans;
+            btn.onclick = () => checkAnswer(i);
+            answersEl.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function checkAnswer(i) {
+        clearInterval(timer);
+
+        if (i === questions[index].correct) {
+            score++;
+            scoreEl.textContent = score;
+            correctSound.play();
+        } else {
+            wrongSound.play();
+        }
+
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        index++;
+        if (index < questions.length) {
+            showQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        quizEl.classList.add("hidden");
+        endEl.classList.remove("hidden");
+        endSound.play();
+        finalScoreEl.textContent = `🏆 Ton score final : ${score} / ${questions.length}`;
+    }
+
+    function restart() {
+        index = 0;
+        score = 0;
+        scoreEl.textContent = score;
+        quizEl.classList.remove("hidden");
+        endEl.classList.add("hidden");
+        showQuestion();
+    }
+
+    showQuestion();
+</script>
+
+</body>
+</html>
